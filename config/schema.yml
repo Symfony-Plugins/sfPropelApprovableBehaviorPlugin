@@ -1,0 +1,9 @@
+propel:
+  _attributes:    { package: plugins.sfPropelApprovableBehaviorPlugin.lib.model }
+
+  sf_approval:
+    _attributes:       { phpName: sfApproval, package: plugins.sfPropelApprovableBehaviorPlugin.lib.model }
+    id:                ~
+    approvable_model: varchar(30)
+    approvable_id:    integer
+    uuid:             varchar(36)

@@ -1,0 +1,233 @@
+= sfPropelApprovableBehaviorPlugin =
+
+== Overview ==
+
+This plugin enables propel objects to be approved prior to use.  It filters queries for unapproved objects and provides a module to approve objects through a link.  It supports multiple classes at a time and can be put to many different purposes:
+
+ * Moderate comments prior to publishing
+ * Verify commenter email address
+ * Opt in email lists
+ * New user registrations
+
+The bahavior can be disabled temporarily or for specified applications, such as the backend where you may want to show the complete list of objects to approve directly.
+
+sfPropelApprovableBehaviorPlugin works well with [wiki:sfPropelAlternativeSchemaPlugin] to add the extra approved fields to other classes (especially those provided by plugins) and to add behaviors.
+
+== Installation ==
+ 
+To install the plugin for a symfony project, the usual process is to use the symfony command line:
+{{{
+$ symfony plugin-install http://plugins.symfony-project.com/sfPropelApprovableBehaviorPlugin
+}}}
+
+Alternatively, if you don't have PEAR installed, you can download the latest package attached to this plugin's wiki page and extract it under your project's `plugins/` directory.
+
+Ensure that behaviors are enabled in propel.ini:
+{{{
+propel.builder.addBehaviors = true
+}}}
+
+Add the bahavior to one or more classes.  See below for instructions on how to do this manually or with [wiki:sfPropelAlternativeSchemaPlugin].
+
+Rebuild the model and databases ('''this command will wipe the contents of your database - if you have live data, modify the database structure manually!):
+{{{
+$ symfony propel-build-all
+}}}
+
+Enable the sfApprovable module in your application(s):
+
+{{{
+// in myproject/apps/frontend/config/settings.yml
+all:
+  .settings:
+    enabled_modules:        [default, sfApprovable]
+}}}
+
+Clear the cache to enable the autoloading to find the new classes:
+{{{
+$ symfony cc
+}}}
+
+== Applying the behavior ==
+
+=== Using [wiki:sfPropelAlternativeSchemaPlugin] ===
+
+Installation is easiest using [wiki:sfPropelAlternativeSchemaPlugin].  Go and install it now - I'll wait for you.
+
+To install on one of your own tables, add a boolean column `is_approved` and enable the bahavior:
+
+{{{
+propel:
+  comment:
+    id:            ~
+    email:         varchar(128)
+    text:          longvarchar
+    ...
+    is_approved:   boolean
+    _behaviors:
+      sfPropelApprovableBehavior:        {}
+}}}
+
+sfPropelApprovableBehaviorPlugin has the following default behavior:
+
+ * use the `is_approved` column
+ * sfApprovable redirects to `@homepage`
+ * enabled for all applications
+ * approved value is `true`
+
+You can change these options when attaching the behavior:
+
+{{{
+propel:
+  comment:
+    ...
+    is_active:   boolean
+    _behaviors:
+      sfPropelApprovableBehavior:
+        column:                  is_active
+        destination:             'comments/list'
+        disabled_applications:   [backend]
+        approved_value:          false
+}}}
+
+Using [wiki:sfPropelAlternativeSchemaPlugin] you can easily apply the behavior to other plugins' schema.  For example to apply it to new sfGuard users create a file `sfGuardPlugin_schema.custom.yml`:
+
+{{{
+propel:
+  sf_guard_user:
+    _attributes:    { phpName: sfGuardUser }
+    is_active:      { type: boolean, required: true, default: 0 }
+    _behaviors:
+      sfPropelApprovableBehavior:        { column: is_active, disabled_applications: [backend] }
+}}}
+
+Remember to disable the bahavior in your backend application so that you can use the sfGuardUser administration module.
+
+=== Manually applying the bahavior ===
+
+To manually enable to module you must add columns to your schema yourself and add the behavior to the bottom of your model:
+
+{{{
+#!php
+<?php
+// lib/model/Comment.php
+class Comment
+{
+}
+sfPropelBehavior::add('Comment', 
+  array(
+    'sfPropelApprovableBehavior' => array(
+      'column' => 'is_approved',
+      'disabled_applications' => array('backend'),
+    )
+  )
+);
+}}}
+
+Isn't that ugly?  Go and install [wiki:sfPropelAlternativeSchemaPlugin] instead!
+
+== Integrating with your application ==
+
+=== Sending approval emails ===
+
+Once you've added the behavior you need to do something with it.  sfPropelApprovableBehaviorPlugin doesn't send out emails for you - it's your responsibility to initiate the approval process at whatever point you wish.  Using our comments example we can add it to the actions:
+
+{{{
+#!php
+<?php
+  public function executeAddComment()
+  {
+    $comment = new Comment();
+    $comment->setEmail($this->getRequestParameter('email'));
+    
+    // You must save the object before you can retrieve the approval URL
+    $comment->save();
+    
+    // This returns the internal URL, for example 'sfApprovable/approve?uuid=ef3dcae3-a3c8-4924-c176-1b1310e16fc0'
+    $url = $comment->getApprovalUrl();
+    
+    // Fire off an email containing the link - use url_for($url, true) to get the absolute URL
+  }
+}}}
+
+If you're integrating with a plugin then you may be able to override the plugin's actions.class.php with your own in your application's modules directory.  Alternatively, the plugin may provide mixin hooks that you can use, for example with [wiki:sfPropelActAsCommentableBehaviorPlugin] 0.4 or above:
+
+{{{
+#!php
+<?php
+// lib/myApprovableEmails.class.php
+
+class myApprovableEmails
+{
+
+  public function comment($comment, $object)
+  {
+      $mail = new sfMail();
+      $mail->initialize();
+      $mail->setMailer('sendmail');
+      $mail->setCharset('utf-8');
+      
+      $mail->setSender('webmaster@example.com', 'Approve Comment');
+      $mail->setFrom('webmaster@example.com', 'Approve Comment');
+      $mail->addReplyTo('webmaster@example.com');
+  
+      $mail->addAddress($comment->getAuthorEmail());
+  
+      $mail->setSubject('Approve Comment');
+      $mail->setBody('
+Confirm you wanted your comment to go live:
+
+'.sfContext::getInstance()->getController()->genUrl($comment->getApprovalUrl(),true)
+      );
+
+      // send the email
+      $mail->send();
+  }
+}
+
+
+// apps/frontend/config/config.php
+
+sfMixer::register('sfCommentActions:addComment:post', array('myApprovableEmails', 'comment'));
+}}}
+
+=== Actioning approvals ===
+
+sfPropelApprovableBehaviorPlugin provides a module - sfApprovable - which will flag your objects as approved.  Default functionality is to set the specified column to the approved value and redirect to the `@homepage` route.  A flash value `sf_approvable_object` is set with the object being approved before redirection to allow further redirection.  Additionally two hooks are provided:
+
+ * sfApprovableActions:approve:pre
+ * sfApprovableActions:approve:post
+
+Both are passed the object and will cause action to return with any non-null return value.
+
+== Query Filtering ==
+
+You can disable the bahavior for the next query:
+
+{{{
+#!php
+<?php
+sfPropelApprovableBehavior::disable();
+?>
+}}}
+
+Or on an application level using the `disabled_applications` option passed when attaching the behavior.  This is useful for backend applications where you want to be able to approve manually or where filtering on the approval status is done somewhere else (as is the case with sfGuard's is_active column).
+
+== Licence and Credits ==
+
+This plugin is licensed under the MIT license.  Written by [http://www.michaelnolan.co.uk/ Michael Nolan] for [http://www.edgehill.ac.uk/ Edge Hill University] [http://blogs.edgehill.ac.uk/ Web Services].
+
+== Todo ==
+
+ * Allow multiple columns in a single model to be supported - any ideas how welcome!
+ * Expiry time with cleanup
+
+ 
+== Changelog ==
+
+=== Trunk ===
+
+=== 2007-12-11 | 0.1.0 Beta ===
+
+ * Michael.Nolan: initial release
+

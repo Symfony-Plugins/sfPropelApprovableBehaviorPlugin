@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<package xmlns="http://pear.php.net/dtd/package-2.0" xmlns:tasks="http://pear.php.net/dtd/tasks-1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" packagerversion="1.4.1" version="2.0" xsi:schemaLocation="http://pear.php.net/dtd/tasks-1.0 http://pear.php.net/dtd/tasks-1.0.xsd http://pear.php.net/dtd/package-2.0 http://pear.php.net/dtd/package-2.0.xsd">
+ <name>sfPropelApprovableBehaviorPlugin</name>
+ <channel>pear.symfony-project.com</channel>
+ <summary>Propel approvable behavior</summary>
+ <description>This plugin enables propel objects to be approved prior to use.  It filters queries for unapproved objects and provides a module to approve objects through a link.</description>
+ <lead>
+  <name>Michael Nolan</name>
+  <user>Michael.Nolan</user>
+  <email>michael@michaelnolan.co.uk</email>
+  <active>yes</active>
+ </lead>
+ <date>2007-12-11</date>
+ <version>
+   <release>0.1.0</release>
+   <api>0.1.0</api>
+ </version>
+ <stability>
+  <release>beta</release>
+  <api>beta</api>
+ </stability>
+ <license uri="http://www.symfony-project.com/license">MIT license</license>
+ <notes>-</notes>
+ <contents><dir name="/"><dir name="config"><file name="config.php" role="data"/><file name="schema.yml" role="data"/></dir><dir name="lib"><file name="sfPropelApprovableBehavior.class.php" role="data"/><file name="sfPropelApprovableToolkit.class.php" role="data"/><dir name="model"><dir name="om"><file name="BasesfApprovalPeer.php" role="data"/><file name="BasesfApproval.php" role="data"/></dir><dir name="map"><file name="sfApprovalMapBuilder.php" role="data"/></dir><file name="sfApprovalPeer.php" role="data"/><file name="sfApproval.php" role="data"/><dir name="plugin"><file name="PluginsfApprovalPeer.php" role="data"/><file name="PluginsfApproval.php" role="data"/></dir></dir></dir><dir name="modules"><dir name="sfApprovable"><dir name="actions"><file name="actions.class.php" role="data"/></dir><dir name="lib"><file name="BasesfApprovableActions.class.php" role="data"/></dir><dir name="templates"><file name="approveSuccess.php" role="data"/><file name="approveNotFound.php" role="data"/></dir></dir></dir><dir name="test"><dir name="unit"><file name="sfPropelApprovableBehaviorTest.php" role="data"/></dir></dir><file name="LICENSE" role="data"/><file name="README" role="data"/><file name="package-sfPropelApprovableBehaviorPlugin.xml" role="data"/></dir></contents>
+
+ <dependencies>
+  <required>
+   <php>
+    <min>5.1.0</min>
+   </php>
+   <pearinstaller>
+    <min>1.4.1</min>
+   </pearinstaller>
+   <package>
+    <name>sfPropelApprovableBehaviorPlugin</name>
+    <channel>pear.symfony-project.com</channel>
+    <min>0.8.1</min>
+    <max>1.1.0</max>
+    <exclude>1.1.0</exclude>
+   </package>
+  </required>
+ </dependencies>
+
+ <phprelease>
+ </phprelease>
+
+ <changelog>
+ </changelog>
+</package>
