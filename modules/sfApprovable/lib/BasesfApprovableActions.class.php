@@ -10,6 +10,8 @@ class BasesfApprovableActions extends sfActions
     {
       return 'NotFound';
     }
+  
+    $ret = null;
 
     $object = $approval->getRelatedObject();
     $this->setFlash('sf_approvable_object', $object);

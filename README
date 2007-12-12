@@ -227,6 +227,8 @@ This plugin is licensed under the MIT license.  Written by [http://www.michaelno
 
 === Trunk ===
 
+ * joran: undeclared $ret gives notice (fixes #2661)
+
 === 2007-12-12 | 0.2.0 Beta ===
 
  * joran: retrieveByUuid() should be static (fixes #2659)
