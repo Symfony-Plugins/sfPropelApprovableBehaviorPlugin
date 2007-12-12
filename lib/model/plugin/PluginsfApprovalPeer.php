@@ -60,7 +60,7 @@ class PluginsfApprovalPeer extends BasesfApprovalPeer
     $approval = sfApprovalPeer::doDelete($c);
   }
   
-  public function retrieveByUuid($uuid)
+  public static function retrieveByUuid($uuid)
   {
     $c = new Criteria();
     $c->add(sfApprovalPeer::UUID, $uuid);

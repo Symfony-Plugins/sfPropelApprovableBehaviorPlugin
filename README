@@ -227,6 +227,8 @@ This plugin is licensed under the MIT license.  Written by [http://www.michaelno
 
 === Trunk ===
 
+ * joran: retrieveByUuid() should be static (fixes #2659)
+
 === 2007-12-11 | 0.1.0 Beta ===
 
  * Michael.Nolan: initial release
